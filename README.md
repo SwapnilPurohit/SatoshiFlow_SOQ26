@@ -1,7 +1,5 @@
 # SatoshiFlow: Algorithmic Trading Strategies for Bitcoin (BTC/USD)
 
-**Project:** Summer of Quant Final Submission
-
 ## Overview
 This repository contains the development, optimization, and backtesting of three quantitative trading strategies designed for Bitcoin (BTC/USD). The strategies were rigorously tested on daily historical data spanning from 2018 to 2022. 
 
