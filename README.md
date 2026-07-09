@@ -1,6 +1,5 @@
 # SatoshiFlow: Algorithmic Trading Strategies for Bitcoin (BTC/USD)
 
-**Author:** Swapnil Purohit (24B2507)  
 **Project:** Summer of Quant Final Submission
 
 ## Overview
