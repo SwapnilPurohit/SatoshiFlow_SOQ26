@@ -152,8 +152,8 @@ def main():
     if not lookahead_bias:
         print("No lookahead bias detected.")
 
-    # Generate the PnL graph
-    # bt.make_pnl_graph()
+    # Generate the trade graph
+    bt.make_trade_graph()
     
 if __name__ == "__main__":
     main()

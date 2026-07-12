@@ -351,6 +351,80 @@ class BackTester:
         downside_risk = np.std([r for r in returns if r < 0])
 
         return (mean_return - risk_free_rate) / downside_risk if downside_risk > 0 else 0
+    
+    def make_trade_graph(self):
+        self.calc_capital()
+
+        fig = go.Figure(data=[go.Candlestick(x=self.data.index,
+                                     open=self.data['open'],
+                                     high=self.data['high'],
+                                     low=self.data['low'],
+                                     close=self.data['close'])])
+        
+
+        # Identify regions for trades
+        trade_regions = []
+        for trade in self.trades:
+            init_idx = self.data.index.get_indexer([trade.init_timestamp], method='nearest')[0]
+            final_idx = self.data.index.get_indexer([trade.final_timestamp], method='nearest')[0]
+
+            # Ensure indices are within valid range
+            if 0 <= init_idx < len(self.data) and 0 <= final_idx < len(self.data):
+                trade_regions.append((init_idx, final_idx))
+
+                start_close = self.data['close'].iloc[init_idx]
+                end_close = self.data['close'].iloc[final_idx]
+                price_change = end_close - start_close
+            
+                if trade.qty > 0:
+                    fig.add_shape(type='rect',
+                        x0=self.data.index[init_idx], y0=self.data['low'].min(), 
+                        x1=self.data.index[final_idx], y1=self.data['high'].max(),
+                        fillcolor='green', opacity=0.08, line=dict(width=0))
+                elif trade.qty < 0:
+                    fig.add_shape(type='rect',
+                        x0=self.data.index[init_idx], y0=self.data['low'].min(), 
+                        x1=self.data.index[final_idx], y1=self.data['high'].max(),
+                        fillcolor='red', opacity=0.08, line=dict(width=0))
+
+        # Add rectangle for currently open position (if any)
+        if self.position.qty != 0:
+            init_idx = self.data.index.get_indexer([self.position.timestamp], method='nearest')[0]
+            final_idx = len(self.data) - 1  # Current position extends to the end of the data
+            
+            if 0 <= init_idx < len(self.data):
+                if self.position.qty > 0:
+                    fig.add_shape(type='rect',
+                        x0=self.data.index[init_idx], y0=self.data['low'].min(), 
+                        x1=self.data.index[final_idx], y1=self.data['high'].max(),
+                        fillcolor='green', opacity=0.08, line=dict(width=0))
+                elif self.position.qty < 0:
+                    fig.add_shape(type='rect',
+                        x0=self.data.index[init_idx], y0=self.data['low'].min(), 
+                        x1=self.data.index[final_idx], y1=self.data['high'].max(),
+                        fillcolor='red', opacity=0.08, line=dict(width=0))
+                    
+
+        # Create a mask for "in-trade" and "out-of-trade" regions
+        in_trade_mask = [False] * len(self.data)
+        for start, end in trade_regions:
+            for i in range(start, end + 1):
+                in_trade_mask[i] = True
+
+
+        # Show the interactive plot
+        fig.update_layout(
+            xaxis=dict(
+                rangeslider=dict(visible=True),  # Enables the range slider below the chart
+                type="category"  # Set the axis type, if needed
+            ),
+            yaxis=dict(
+                fixedrange=False  # Allow zooming on the y-axis
+            ),
+            hovermode="closest",
+            dragmode='zoom'  # Sets the drag mode to zoom
+        )
+        fig.show()
         
     def calc_pnl(self):
         if "pnl" in self.data.columns:
@@ -674,7 +748,7 @@ class BackTester:
 
 
 if __name__ == "__main__":
-    bt = BackTester("BTC", signal_data_path="final_data.csv", master_file_path="final_data.csv", compound_flag=1)
+    bt = BackTester("BTC", signal_data_path="results_combined1.csv", master_file_path="results_combined1.csv", compound_flag=1)
 
     bt.get_trades(1000)
 
